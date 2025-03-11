@@ -3,6 +3,8 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from models import User
 from forms.auth import LoginForm, ProfileForm
+from datetime import datetime, timedelta
+import re
 
 auth_blueprint = Blueprint('auth', __name__)
 
@@ -14,12 +16,40 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
-        if user and user.check_password(form.password.data):
+        if not user:
+            flash('Invalid username or password', 'danger')
+            return render_template('auth/login.html', form=form, title='Login')
+        
+        # Check if account is locked
+        if user.is_account_locked():
+            remaining_time = user.locked_until - datetime.utcnow()
+            minutes = remaining_time.seconds // 60
+            flash(f'Account is temporarily locked. Try again in {minutes} minutes.', 'danger')
+            return render_template('auth/login.html', form=form, title='Login')
+        
+        # Verify password
+        if user.check_password(form.password.data):
+            # Reset failed login attempts on successful login
+            user.failed_login_attempts = 0
+            db.session.commit()
+            
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
             return redirect(next_page if next_page else url_for('main.index'))
         else:
-            flash('Invalid username or password', 'danger')
+            # Increment failed login attempts
+            user.failed_login_attempts += 1
+            user.last_failed_login = datetime.utcnow()
+            
+            # Lock account after 5 failed attempts
+            if user.failed_login_attempts >= 5:
+                user.locked_until = datetime.utcnow() + timedelta(minutes=15)
+                flash('Too many failed login attempts. Your account has been locked for 15 minutes.', 'danger')
+            else:
+                remaining_attempts = 5 - user.failed_login_attempts
+                flash(f'Invalid password. {remaining_attempts} attempts remaining before account lockout.', 'danger')
+            
+            db.session.commit()
     
     return render_template('auth/login.html', form=form, title='Login')
 
@@ -82,7 +112,6 @@ def setup():
         # Create the admin user
         user = User(
             username=form.username.data,
-            email='admin@example.com',  # Default email since we don't collect it
             is_admin=True
         )
         user.set_password(form.new_password.data)
@@ -93,4 +122,4 @@ def setup():
         flash('Admin user created successfully. You can now log in.', 'success')
         return redirect(url_for('auth.login'))
     
-    return render_template('auth/setup.html', form=form, title='System Setup')
+    return render_template('auth/setup.html', form=form, title='Initial Setup')

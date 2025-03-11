@@ -11,16 +11,24 @@ class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=True)  # Tornando o email opcional
     password_hash = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    failed_login_attempts = db.Column(db.Integer, default=0)
+    last_failed_login = db.Column(db.DateTime, nullable=True)
+    locked_until = db.Column(db.DateTime, nullable=True)
     
     def set_password(self, password):
         self.password_hash = pbkdf2_sha256.hash(password)
         
     def check_password(self, password):
         return pbkdf2_sha256.verify(password, self.password_hash)
+    
+    def is_account_locked(self):
+        if self.locked_until and self.locked_until > datetime.utcnow():
+            return True
+        return False
         
     def __repr__(self):
         return f'<User {self.username}>'

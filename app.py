@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import event, text
+from sqlalchemy import event, text, or_
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -9,6 +9,9 @@ from datetime import datetime
 from dotenv import load_dotenv
 import logging
 import atexit
+import secrets
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Setup logging
 logging.basicConfig(
@@ -24,6 +27,12 @@ load_dotenv()
 db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+    enabled=os.environ.get('ENABLE_RATE_LIMITING', 'True').lower() == 'true'
+)
 
 # Criar o scheduler como variável global, mas inicializar apenas uma vez
 scheduler = None
@@ -32,7 +41,7 @@ def create_app():
     app = Flask(__name__)
     
     # Configuration
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///uptime.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
@@ -50,40 +59,81 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+    limiter.init_app(app)
+    
+    # Configure LoginManager
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Please log in to access this page.'
+    login_manager.login_message_category = 'info'
     
     # Aplicar otimizações SQLite com pragmas mais simples
     if 'sqlite' in app.config['SQLALCHEMY_DATABASE_URI']:
         with app.app_context():
             db.session.execute(text("PRAGMA journal_mode=WAL"))
             db.session.execute(text("PRAGMA synchronous=NORMAL"))
-            db.session.execute(text("PRAGMA cache_size=5000"))
+            db.session.execute(text("PRAGMA temp_store=memory"))
             db.session.execute(text("PRAGMA foreign_keys=ON"))
             db.session.commit()
-            
-    # Configure LoginManager
-    login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'Please log in to access this page.'
-    login_manager.login_message_category = 'info'
     
-    # Import models (moved inside to avoid circular imports)
-    from models import User
+    # Register Blueprints
+    with app.app_context():
+        from routes import main, auth, api, probes, jobs
+        
+        app.register_blueprint(main.main_blueprint)
+        app.register_blueprint(auth.auth_blueprint)
+        app.register_blueprint(api.api_blueprint)
+        app.register_blueprint(probes.probes_blueprint)
+        app.register_blueprint(jobs.jobs_blueprint)
+
+        @login_manager.user_loader
+        def load_user(user_id):
+            from models import User
+            return User.query.get(int(user_id))
     
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
-    
-    # Register blueprints
-    from routes.auth import auth_blueprint
-    from routes.main import main_blueprint
-    from routes.probes import probes_blueprint
-    from routes.jobs import jobs_blueprint
-    from routes.api import api_blueprint
-    
-    app.register_blueprint(auth_blueprint)
-    app.register_blueprint(main_blueprint)
-    app.register_blueprint(probes_blueprint)
-    app.register_blueprint(jobs_blueprint)
-    app.register_blueprint(api_blueprint)
+    # Initialize database if it doesn't exist
+    with app.app_context():
+        # Adicionar as colunas faltantes na tabela users
+        try:
+            db.session.execute(text("""
+                ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0;
+            """))
+            db.session.commit()
+            app.logger.info('Added failed_login_attempts column to users table')
+        except Exception as e:
+            db.session.rollback()
+            app.logger.info(f'Column might already exist: {str(e)}')
+        
+        try:
+            db.session.execute(text("""
+                ALTER TABLE users ADD COLUMN last_failed_login TIMESTAMP;
+            """))
+            db.session.commit()
+            app.logger.info('Added last_failed_login column to users table')
+        except Exception as e:
+            db.session.rollback()
+            app.logger.info(f'Column might already exist: {str(e)}')
+        
+        try:
+            db.session.execute(text("""
+                ALTER TABLE users ADD COLUMN locked_until TIMESTAMP;
+            """))
+            db.session.commit()
+            app.logger.info('Added locked_until column to users table')
+        except Exception as e:
+            db.session.rollback()
+            app.logger.info(f'Column might already exist: {str(e)}')
+        
+        # Create tables if they don't exist
+        db.create_all()
+        
+        # Create admin user if not exists - remove this part since we're using init_db.py
+        # from models import User
+        # if not User.query.filter(db.or_(User.username == 'admin', User.email == 'admin@example.com')).first():
+        #     admin_user = User(username='admin', email='admin@example.com', is_admin=True)
+        #     admin_user.set_password('admin')
+        #     db.session.add(admin_user)
+        #     db.session.commit()
+        #     app.logger.info('Admin user created with username: admin and password: admin')
     
     # Error handlers
     @app.errorhandler(404)
@@ -93,20 +143,6 @@ def create_app():
     @app.errorhandler(500)
     def internal_server_error(e):
         return render_template('errors/500.html'), 500
-    
-    # Initialize database if it doesn't exist
-    with app.app_context():
-        db.create_all()
-        
-        # Create admin user if not exists
-        if not User.query.filter_by(username='admin').first():
-            # Verificar também pelo email para evitar duplicação
-            if not User.query.filter_by(email='admin@example.com').first():
-                admin_user = User(username='admin', email='admin@example.com', is_admin=True)
-                admin_user.set_password('admin')
-                db.session.add(admin_user)
-                db.session.commit()
-                app.logger.info('Admin user created with username: admin and password: admin')
     
     # Inicializa o scheduler uma única vez na aplicação principal
     global scheduler
@@ -166,4 +202,5 @@ def start_scheduler(app):
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    debug_mode = os.environ.get('DEBUG', 'False').lower() == 'true'
+    app.run(host='0.0.0.0', port=5000, debug=debug_mode)

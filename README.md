@@ -31,8 +31,14 @@ sudo docker compose build
 sudo docker compose up -d
 ```
 
-3. Access the application at http://localhost:5000 (default username/password: admin/admin)
-4. Create a new probe in the web interface and copy the generated API key
+3. Access the application at http://localhost:5000
+4. Log in with the default credentials:
+   - Username: **admin**
+   - Password: **admin**
+   
+   **Important**: For security reasons, it's recommended to change these credentials after the first login.
+   
+5. Create a new probe in the web interface and copy the generated API key
 
 #### Probe Deployment
 
@@ -105,7 +111,13 @@ flask run --host=0.0.0.0
 ```
 
 6. Access the application at http://localhost:5000
-7. Create a new probe in the web interface and copy the generated API key
+7. Log in with the default credentials:
+   - Username: **admin**
+   - Password: **admin**
+   
+   **Important**: For security reasons, it's recommended to change these credentials after the first login.
+   
+8. Create a new probe in the web interface and copy the generated API key
 
 #### Probe Installation
 
