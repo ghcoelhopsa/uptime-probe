@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+import json
 from flask import Blueprint, jsonify, request, current_app
 from flask_login import login_required
 from sqlalchemy import text
@@ -165,6 +166,75 @@ def submit_job_result(api_key):
     
     db.session.add(job_result)
     db.session.commit()
+    
+    # Atualizar timestamp de última execução
+    job.last_run = datetime.utcnow()
+    db.session.commit()
+    
+    return jsonify({
+        'status': 'success',
+        'message': 'Job result recorded successfully'
+    })
+
+@api_blueprint.route('/api/results', methods=['POST'])
+def legacy_submit_job_result():
+    """Endpoint de compatibilidade para probes antigos enviar resultados"""
+    # Obter o API key do cabeçalho de autorização
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({
+            'status': 'error',
+            'message': 'API key não fornecida no cabeçalho Authorization'
+        }), 401
+    
+    api_key = auth_header.split(' ')[1]
+    
+    # Verificar se o probe existe e é ativo
+    probe = Probe.query.filter_by(api_key=api_key, is_active=True).first()
+    
+    if not probe:
+        return jsonify({
+            'status': 'error',
+            'message': 'Invalid or inactive API key'
+        }), 401
+    
+    # Registrar conexão do probe
+    client_ip = request.remote_addr
+    probe_log = ProbeLog(
+        probe_id=probe.id,
+        action="submit_results",
+        ip_address=client_ip,
+        details="Probe submitted job results (legacy endpoint)"
+    )
+    db.session.add(probe_log)
+    
+    # Validar formato dos dados
+    data = request.json
+    if not data or not isinstance(data, dict) or 'job_id' not in data or 'success' not in data:
+        return jsonify({
+            'status': 'error',
+            'message': 'Invalid data format'
+        }), 400
+    
+    # Procurar job correspondente
+    job = Job.query.filter_by(id=data['job_id'], probe_id=probe.id).first()
+    if not job:
+        return jsonify({
+            'status': 'error',
+            'message': 'Job not found or not assigned to this probe'
+        }), 404
+    
+    # Criar registro de resultado
+    job_result = JobResult(
+        job_id=job.id,
+        success=data['success'],
+        response_time=data.get('response_time_ms'),  # Campo ajustado para compatibilidade
+        status_code=data.get('packets_received'),   # Campo ajustado para compatibilidade
+        error_message=data.get('error_message'),
+        output=json.dumps(data)  # Salvar todos os dados para debug
+    )
+    
+    db.session.add(job_result)
     
     # Atualizar timestamp de última execução
     job.last_run = datetime.utcnow()
