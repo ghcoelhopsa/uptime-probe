@@ -2,6 +2,20 @@
 
 Web service monitoring system with distributed probe architecture. It has a web interface for registering probes and jobs, similar to Uptime Kuma in push mode.
 
+## Screenshots
+
+### Dashboard
+![Dashboard Screenshot](/imagens/dashboard.png)
+*Main dashboard showing the system status and key metrics*
+
+### Jobs Management
+![Jobs Management](/imagens/jobs.png)
+*Job configuration interface for setting up monitoring tasks*
+
+### Probe Management
+![Probe Interface](/imagens/probe.png)
+*Probe management interface showing connected monitoring agents*
+
 ## Features
 
 - User authentication

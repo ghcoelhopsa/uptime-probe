@@ -236,7 +236,7 @@ def execute_ping(job):
         }
 
 def send_result_to_server(job_id, result):
-    """Sends the result to the server and to Uptime Kuma"""
+    """Sends the result to the server using the modern API endpoint"""
     # Get the job to know the Kuma URL
     job = next((j for j in jobs if j['id'] == job_id), None)
     if not job:
@@ -256,13 +256,13 @@ def send_result_to_server(job_id, result):
     }
     
     try:
+        # Using the modern endpoint format: /api/probe/<api_key>/results
         response = requests.post(
-            f"{SERVER_URL}/api/results",
-            json=data,
-            headers={"Authorization": f"Bearer {API_KEY}"}
+            f"{SERVER_URL}/api/probe/{API_KEY}/results",
+            json=data
         )
         if response.status_code == 200:
-            logger.debug(f"Result sent successfully to the server: Job ID {job_id}")
+            logger.debug(f"Result sent successfully to the server using modern endpoint: Job ID {job_id}")
         else:
             logger.error(f"Error sending result to server: {response.status_code} - {response.text}")
     except Exception as e:
