@@ -36,18 +36,23 @@ sudo docker compose up -d
 
 #### Probe Deployment
 
-**Important**: The probe requires both the Uptime Monitor server and Uptime Kuma to be deployed and accessible first. The probe connects to the server for job instructions and reports results to both the server and Uptime Kuma.
+**Important**: The probe requires the Uptime Monitor server to be deployed and accessible first. The probe connects to the server for job instructions and reports results back to the server. For proper visualization, the jobs you configure in the Uptime Monitor should include valid Uptime Kuma push URLs.
 
-1. Copy the probe directory to the machine that will run the probe
-2. Edit the `docker-compose.yml` file in the probe directory:
+##### Option 1A: Docker Deployment (Recommended)
 
+1. Copy the probe directory to the machine that will run the probe:
 ```bash
-cd probe
+scp -r /path/to/uptime/probe user@probe-machine:/destination/path/
+# or use any other file transfer method
+```
+
+2. Navigate to the probe directory and edit the docker-compose.yml file:
+```bash
+cd /path/to/probe
 nano docker-compose.yml
 ```
 
-3. Update the environment variables with your server details and the API key generated in step 4 above:
-
+3. Update the environment variables with your server details and the API key generated from the server web interface:
 ```yaml
 environment:
   - API_KEY=your_probe_api_key_here  # Replace with the API key from the server
@@ -57,7 +62,6 @@ environment:
 ```
 
 4. Build and start the probe container:
-
 ```bash
 sudo docker compose build
 sudo docker compose up -d
@@ -65,7 +69,7 @@ sudo docker compose up -d
 
 5. Verify in the server web interface that the probe is connected
 
-### Option 2: Manual Installation
+##### Option 1B: Manual Installation
 
 #### Requirements
 
@@ -106,7 +110,7 @@ flask run --host=0.0.0.0
 
 #### Probe Installation
 
-**Important**: The probe requires both the Uptime Monitor server and Uptime Kuma to be deployed and accessible first. The probe connects to the server for job instructions and reports results to both the server and Uptime Kuma.
+**Important**: The probe requires the Uptime Monitor server to be deployed and accessible first. The probe connects to the server for job instructions and reports results back to the server. For proper visualization, the jobs you configure in the Uptime Monitor should include valid Uptime Kuma push URLs.
 
 1. Copy the probe directory to the machine that will run the probe
 2. Create a virtual environment and install dependencies:
@@ -143,9 +147,9 @@ python probe.py
 
 ## System Dependencies
 
-- **Uptime Monitor Server**: Main application that manages the probes and jobs
+- **Uptime Monitor Server**: Main application that manages users, probes, jobs, and results
 - **Uptime Kuma**: External monitoring visualization tool that the Uptime Monitor forwards data to
-- **Probes**: Depend on both the Uptime Monitor server (for job configuration) and Uptime Kuma (for result reporting)
+- **Probes**: Depend on the Uptime Monitor server for job configuration, and can report results to Uptime Kuma if configured in jobs
 
 ## Security Considerations
 
