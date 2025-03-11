@@ -156,12 +156,12 @@ def submit_job_result(api_key):
     job_result = JobResult(
         job_id=job.id,
         success=data['success'],
-        response_time=data.get('response_time'),
-        status_code=data.get('status_code'),
+        response_time_ms=data.get('response_time_ms'),
+        packets_sent=data.get('packets_sent'),
+        packets_received=data.get('packets_received'),
         error_message=data.get('error_message'),
-        output=data.get('output'),
-        kuma_status_code=data.get('kuma_status_code'),
-        kuma_response=data.get('kuma_response')
+        kuma_success=data.get('kuma_success', True),
+        kuma_error=data.get('kuma_error')
     )
     
     db.session.add(job_result)
@@ -224,23 +224,44 @@ def legacy_submit_job_result():
             'message': 'Job not found or not assigned to this probe'
         }), 404
     
-    # Create result record
-    job_result = JobResult(
-        job_id=job.id,
-        success=data['success'],
-        response_time=data.get('response_time_ms'),  # Field adjusted for compatibility
-        status_code=data.get('packets_received'),   # Field adjusted for compatibility
-        error_message=data.get('error_message'),
-        output=json.dumps(data)  # Save all data for debugging
-    )
+    # Log the data for debugging
+    logger.info(f"Received probe data: {data}")
     
-    db.session.add(job_result)
-    
-    # Update last run timestamp
-    job.last_run = datetime.utcnow()
-    db.session.commit()
-    
-    return jsonify({
-        'status': 'success',
-        'message': 'Job result recorded successfully'
-    })
+    try:
+        # Create result record with only valid fields
+        job_result = JobResult(
+            job_id=job.id,
+            success=data['success']
+        )
+        
+        # Conditionally add fields only if they exist in both the data and the model
+        if 'response_time_ms' in data:
+            job_result.response_time_ms = data['response_time_ms']
+        if 'packets_sent' in data:
+            job_result.packets_sent = data['packets_sent']
+        if 'packets_received' in data:
+            job_result.packets_received = data['packets_received']
+        if 'error_message' in data:
+            job_result.error_message = data['error_message']
+        if 'kuma_success' in data:
+            job_result.kuma_success = data['kuma_success']
+        if 'kuma_error' in data:
+            job_result.kuma_error = data['kuma_error']
+        
+        db.session.add(job_result)
+        
+        # Update last run timestamp
+        job.last_run = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Job result recorded successfully'
+        })
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error creating job result: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Error recording job result: {str(e)}'
+        }), 500
