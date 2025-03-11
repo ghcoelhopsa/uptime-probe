@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Results for Job {{ job.name }} - Uptime Monitor{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4>Ping Results - {{ job.name }}</h4>
+                    <a href="{{ url_for('jobs.list_jobs') }}" class="btn btn-light btn-sm">Back to Jobs</a>
+                </div>
+                
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Host:</strong> {{ job.target_host }} | 
+                        <strong>Interval:</strong> {{ job.interval_seconds }}s | 
+                        <strong>Timeout:</strong> {{ job.timeout_seconds }}s | 
+                        <strong>Attempts:</strong> {{ job.retries }} |
+                        <strong>Uptime Kuma URL:</strong> {% if job.kuma_url %}Configured{% else %}<span class="text-danger">Not configured</span>{% endif %}
+                    </div>
+                    
+                    {% if results %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date/Time</th>
+                                        <th>Ping Status</th>
+                                        <th>Response Time</th>
+                                        <th>Packets</th>
+                                        <th>Kuma Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in results %}
+                                        <tr>
+                                            <td>{{ result.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                                            <td>
+                                                {% if result.success %}
+                                                    <span class="badge bg-success">Success</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Failed</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if result.response_time_ms %}
+                                                    {{ result.response_time_ms|round(2) }} ms
+                                                {% else %}
+                                                    --
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if result.packets_sent %}
+                                                    {{ result.packets_received }}/{{ result.packets_sent }}
+                                                {% else %}
+                                                    --
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if result.kuma_success %}
+                                                    <span class="badge bg-success">Success</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">Failed</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if result.error_message or result.kuma_error %}
+                                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detailsModal{{ result.id }}">
+                                                        <i class="fas fa-info-circle"></i> Details
+                                                    </button>
+                                                    
+                                                    <!-- Modal for error details -->
+                                                    <div class="modal fade" id="detailsModal{{ result.id }}" tabindex="-1">
+                                                        <div class="modal-dialog modal-dialog-centered">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title">Result Details</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    {% if result.error_message %}
+                                                                        <div class="mb-3">
+                                                                            <h6>Ping Error:</h6>
+                                                                            <pre class="bg-light p-2">{{ result.error_message }}</pre>
+                                                                        </div>
+                                                                    {% endif %}
+                                                                    
+                                                                    {% if result.kuma_error %}
+                                                                        <div>
+                                                                            <h6>Uptime Kuma Error:</h6>
+                                                                            <pre class="bg-light p-2">{{ result.kuma_error }}</pre>
+                                                                        </div>
+                                                                    {% endif %}
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-muted">No errors</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">No results found for this job.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

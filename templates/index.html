@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Uptime Monitor{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary h-100">
+            <div class="card-body text-center">
+                <h1 class="display-4">{{ probes_count }}</h1>
+                <p class="card-text">Total Probes</p>
+            </div>
+            <div class="card-footer bg-primary text-white text-center">
+                <small>{{ active_probes }} active</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success h-100">
+            <div class="card-body text-center">
+                <h1 class="display-4">{{ jobs_count }}</h1>
+                <p class="card-text">Total Jobs</p>
+            </div>
+            <div class="card-footer bg-success text-white text-center">
+                <small>{{ active_jobs }} active</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Offline Probes (no response for over 5 minutes)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Probe Name</th>
+                                <th>Description</th>
+                                <th>Last Connection</th>
+                                <th>Configured Jobs</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if offline_probes %}
+                                {% for probe in offline_probes %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('probes.edit_probe', probe_id=probe.id) }}">
+                                                {{ probe.name }}
+                                            </a>
+                                        </td>
+                                        <td>{{ probe.description|truncate(50) if probe.description else "-" }}</td>
+                                        <td>
+                                            {% if probe.last_seen %}
+                                                {{ probe.last_seen.strftime('%d/%m/%Y %H:%M:%S') }}
+                                            {% else %}
+                                                <span class="text-muted">Never connected</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('probes.probe_jobs', probe_id=probe.id) }}" class="btn btn-sm btn-info" title="View Jobs">
+                                                <i class="fas fa-tasks me-1"></i>{{ probe.jobs.count() }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('probes.view_probe_logs', probe_id=probe.id) }}" class="btn btn-sm btn-secondary" title="View Connection Logs">
+                                                <i class="fas fa-history me-1"></i>Logs
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        <div class="alert alert-success mb-0">
+                                            <i class="fas fa-check-circle me-2"></i>All active probes are responding normally!
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

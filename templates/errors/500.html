@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Erro no Servidor - Uptime Monitor{% endblock %}
+
+{% block content %}
+<div class="text-center mt-5">
+    <h1 class="display-1 text-muted">500</h1>
+    <p class="lead">Erro no Servidor</p>
+    <p>Ocorreu um problema interno no servidor. Tente novamente mais tarde ou entre em contato com o administrador.</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+        <i class="fas fa-home me-1"></i>Voltar para a Home
+    </a>
+</div>
+{% endblock %}

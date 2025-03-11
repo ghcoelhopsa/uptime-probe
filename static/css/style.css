@@ -1,0 +1,53 @@
+/* Custom styles for Uptime Monitor */
+
+/* Sticky footer */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1 0 auto;
+}
+
+.footer {
+    flex-shrink: 0;
+    margin-top: 2rem;
+}
+
+/* Card shadows and hover effects */
+.card {
+    transition: all 0.3s;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Table styling */
+.table th {
+    background-color: #f8f9fa;
+}
+
+/* Form elements */
+.form-control:focus, .form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* API Key input styling */
+#apiKey {
+    font-family: monospace;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Status badges */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}

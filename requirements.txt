@@ -1,0 +1,14 @@
+Flask==2.3.3
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.2
+Flask-WTF==1.2.1
+Flask-Migrate==4.0.5
+Email-validator==2.1.0
+WTForms==3.1.1
+passlib==1.7.4
+python-dotenv==1.0.0
+itsdangerous==2.1.2
+pytz==2023.3
+Werkzeug==2.3.7
+APScheduler==3.10.1
+waitress==2.1.2

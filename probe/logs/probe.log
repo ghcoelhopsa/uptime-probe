@@ -1,0 +1,20 @@
+2025-03-11 12:48:22,104 - uptime-probe - INFO - ===== Starting Uptime Probe =====
+2025-03-11 12:48:22,105 - uptime-probe - INFO - Connecting to server: http://localhost:5000
+2025-03-11 12:48:22,105 - uptime-probe - INFO - Job update interval: 300 seconds
+2025-03-11 12:48:22,105 - uptime-probe - INFO - Heartbeat interval: 60 seconds
+2025-03-11 12:48:22,105 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): localhost:5000
+2025-03-11 12:48:22,106 - uptime-probe - ERROR - Error connecting to server: HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/probe/5ad4ac9b209d5ea9716f08824f688d220357daf09d7a862351ae77e8eb2b56e4/jobs (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7968c2afabd0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-03-11 12:48:22,106 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): localhost:5000
+2025-03-11 12:48:22,106 - uptime-probe - ERROR - Error connecting to server for heartbeat: HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/probe/5ad4ac9b209d5ea9716f08824f688d220357daf09d7a862351ae77e8eb2b56e4/heartbeat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7968c2b01310>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-03-11 12:49:11,490 - uptime-probe - INFO - Termination signal received. Shutting down probe...
+2025-03-11 12:49:12,113 - uptime-probe - INFO - ===== Shutting down Uptime Probe =====
+2025-03-11 12:49:45,916 - uptime-probe - INFO - ===== Starting Uptime Probe =====
+2025-03-11 12:49:45,916 - uptime-probe - INFO - Connecting to server: http://uptime-server:5000
+2025-03-11 12:49:45,916 - uptime-probe - INFO - Job update interval: 300 seconds
+2025-03-11 12:49:45,916 - uptime-probe - INFO - Heartbeat interval: 60 seconds
+2025-03-11 12:49:45,917 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): uptime-server:5000
+2025-03-11 12:49:45,918 - uptime-probe - ERROR - Error connecting to server: HTTPConnectionPool(host='uptime-server', port=5000): Max retries exceeded with url: /api/probe/5ad4ac9b209d5ea9716f08824f688d220357daf09d7a862351ae77e8eb2b56e4/jobs (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7eda1694eb50>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-03-11 12:49:45,918 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): uptime-server:5000
+2025-03-11 12:49:45,919 - uptime-probe - ERROR - Error connecting to server for heartbeat: HTTPConnectionPool(host='uptime-server', port=5000): Max retries exceeded with url: /api/probe/5ad4ac9b209d5ea9716f08824f688d220357daf09d7a862351ae77e8eb2b56e4/heartbeat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7eda16955290>: Failed to establish a new connection: [Errno 111] Connection refused'))
+2025-03-11 12:50:13,843 - uptime-probe - INFO - Termination signal received. Shutting down probe...
+2025-03-11 12:50:13,925 - uptime-probe - INFO - ===== Shutting down Uptime Probe =====

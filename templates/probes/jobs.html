@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Probe {{ probe.name }} Jobs - Uptime Monitor{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tasks me-2"></i>Probe Jobs: {{ probe.name }}</h2>
+    <div>
+        <a href="{{ url_for('probes.list_probes') }}" class="btn btn-secondary me-2">
+            <i class="fas fa-arrow-left me-1"></i>Back to Probes
+        </a>
+        <a href="{{ url_for('jobs.create_job') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>New Job
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Target Host</th>
+                        <th>Kuma URL</th>
+                        <th>Interval</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if probe.jobs.all() %}
+                        {% for job in probe.jobs %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('jobs.view_results', job_id=job.id) }}">
+                                        <strong>{{ job.name }}</strong>
+                                    </a>
+                                    {% if job.description %}
+                                        <br>
+                                        <small class="text-muted">{{ job.description }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ job.target_host }}</td>
+                                <td>
+                                    <small class="text-truncate d-inline-block" style="max-width: 180px;" title="{{ job.kuma_url }}">
+                                        {{ job.kuma_url }}
+                                    </small>
+                                </td>
+                                <td>{{ job.interval_seconds }}s</td>
+                                <td>
+                                    {% if job.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('jobs.view_results', job_id=job.id) }}" class="btn btn-sm btn-info" title="View results">
+                                            <i class="fas fa-chart-line"></i>
+                                        </a>
+                                        <a href="{{ url_for('jobs.edit_job', job_id=job.id) }}" class="btn btn-sm btn-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ job.id }}" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="deleteModal{{ job.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Confirm Deletion</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete the job <strong>{{ job.name }}</strong>?</p>
+                                            <p class="text-danger"><small>This action cannot be undone.</small></p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="{{ url_for('jobs.delete_job', job_id=job.id) }}" method="POST">
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No jobs configured for this probe</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

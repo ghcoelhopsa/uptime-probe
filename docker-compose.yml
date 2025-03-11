@@ -1,0 +1,23 @@
+services:
+  uptime-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: uptime-server
+    restart: unless-stopped
+    volumes:
+      - sqlite_data:/app/data
+    environment:
+      - SECRET_KEY=my-secret-key-change-in-production
+      - DATABASE_URI=sqlite:////app/data/uptime.db
+    ports:
+      - "5000:5000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  sqlite_data:

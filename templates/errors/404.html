@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Página Não Encontrada - Uptime Monitor{% endblock %}
+
+{% block content %}
+<div class="text-center mt-5">
+    <h1 class="display-1 text-muted">404</h1>
+    <p class="lead">Página não encontrada</p>
+    <p>A página que você está procurando não existe ou foi movida.</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+        <i class="fas fa-home me-1"></i>Voltar para a Home
+    </a>
+</div>
+{% endblock %}

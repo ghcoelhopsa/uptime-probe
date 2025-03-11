@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>{{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                            {% for error in form.name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=3) }}
+                            {% for error in form.description.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">A brief description of the job (optional)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.target_host.label(class="form-label") }}
+                            {{ form.target_host(class="form-control" + (" is-invalid" if form.target_host.errors else "")) }}
+                            {% if form.target_host.description %}
+                                <div class="form-text">{{ form.target_host.description }}</div>
+                            {% endif %}
+                            {% if form.target_host.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.target_host.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.kuma_url.label(class="form-label") }}
+                            {{ form.kuma_url(class="form-control" + (" is-invalid" if form.kuma_url.errors else "")) }}
+                            <div class="form-text">Complete URL of the Uptime Kuma endpoint where results will be sent</div>
+                            {% if form.kuma_url.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.kuma_url.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.interval_seconds.label(class="form-label") }}
+                            {{ form.interval_seconds(class="form-control" + (" is-invalid" if form.interval_seconds.errors else "")) }}
+                            {% for error in form.interval_seconds.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">Interval between pings</div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                {{ form.timeout_seconds.label(class="form-label") }}
+                                {{ form.timeout_seconds(class="form-control" + (" is-invalid" if form.timeout_seconds.errors else "")) }}
+                                {% for error in form.timeout_seconds.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                                <div class="form-text">Response timeout</div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                {{ form.retries.label(class="form-label") }}
+                                {{ form.retries(class="form-control" + (" is-invalid" if form.retries.errors else "")) }}
+                                {% for error in form.retries.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                                <div class="form-text">Number of attempts</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.probe_id.label(class="form-label") }}
+                            {{ form.probe_id(class="form-select" + (" is-invalid" if form.probe_id.errors else "")) }}
+                            {% for error in form.probe_id.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">Select the probe that will run this job</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            {{ form.is_active(class="form-check-input") }}
+                            {{ form.is_active.label(class="form-check-label") }}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('jobs.list_jobs') }}" class="btn btn-secondary">Cancel</a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

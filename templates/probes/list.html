@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Probes - Uptime Monitor{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-satellite-dish me-2"></i>Probes</h2>
+    <a href="{{ url_for('probes.create_probe') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>New Probe
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Last Connection</th>
+                        <th>Jobs</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if probes %}
+                        {% for probe in probes %}
+                            <tr>
+                                <td>{{ probe.name }}</td>
+                                <td>{{ probe.description|truncate(50) if probe.description else "-" }}</td>
+                                <td>
+                                    {% if probe.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if probe.last_connected %}
+                                        {{ probe.last_connected.strftime('%d/%m/%Y %H:%M:%S') }}
+                                    {% else %}
+                                        <span class="text-muted">Never connected</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('probes.probe_jobs', probe_id=probe.id) }}" class="btn btn-sm btn-info" title="View Jobs">
+                                        <i class="fas fa-tasks me-1"></i>{{ probe.jobs.count() }}
+                                    </a>
+                                    <a href="{{ url_for('probes.view_probe_logs', probe_id=probe.id) }}" class="btn btn-sm btn-secondary" title="View Connection Logs">
+                                        <i class="fas fa-history me-1"></i>Logs
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('probes.edit_probe', probe_id=probe.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ probe.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="deleteModal{{ probe.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Confirm Deletion</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete the probe <strong>{{ probe.name }}</strong>?</p>
+                                            {% if probe.jobs.count() > 0 %}
+                                                <div class="alert alert-warning">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    This probe has {{ probe.jobs.count() }} associated job(s). Deletion will not be allowed.
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="{{ url_for('probes.delete_probe', probe_id=probe.id) }}" method="POST">
+                                                <button type="submit" class="btn btn-danger" {% if probe.jobs.count() > 0 %}disabled{% endif %}>
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No probes registered</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

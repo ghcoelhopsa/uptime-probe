@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  uptime-probe:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: uptime-probe
+    restart: unless-stopped
+    environment:
+      - API_KEY=your_probe_api_key_here  # Replace with the API key generated on the server
+      - SERVER_URL=http://your_server_ip:5000  # Adjust to your server's address
+      - FETCH_INTERVAL=300  # Interval in seconds to fetch jobs (5 minutes)
+      - HEARTBEAT_INTERVAL=60  # Interval in seconds to send heartbeat (1 minute)
+    cap_add:
+      - NET_RAW  # Required for ping functionality

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header pb-0">
+                    <div class="row">
+                        <div class="col-6 d-flex align-items-center">
+                            <h6 class="mb-0">Probe Connection Logs: {{ probe.name }}</h6>
+                        </div>
+                        <div class="col-6 text-end">
+                            <a href="{{ url_for('probes.list_probes') }}" class="btn btn-outline-primary btn-sm mb-0">
+                                <i class="fas fa-arrow-left"></i> Back to Probes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body px-0 pt-0 pb-2">
+                    <div class="table-responsive p-0">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-xxs font-weight-bolder opacity-7">Date/Time</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder opacity-7">Action</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder opacity-7">IP Address</th>
+                                    <th class="text-uppercase text-xxs font-weight-bolder opacity-7">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if logs %}
+                                    {% for log in logs %}
+                                        <tr>
+                                            <td class="ps-4">
+                                                <span class="text-xs font-weight-bold">
+                                                    {{ log.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}
+                                                </span>
+                                            </td>
+                                            <td class="ps-4">
+                                                <span class="badge badge-sm {{ 'bg-gradient-success' if log.action == 'heartbeat' else 'bg-gradient-info' }}">
+                                                    {{ log.action }}
+                                                </span>
+                                            </td>
+                                            <td class="ps-4">
+                                                <span class="text-xs font-weight-bold">
+                                                    {{ log.ip_address }}
+                                                </span>
+                                            </td>
+                                            <td class="ps-4">
+                                                <span class="text-xs font-weight-bold">
+                                                    {{ log.details }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center">
+                                            <span class="text-xs font-weight-bold">No connection logs recorded for this probe</span>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
