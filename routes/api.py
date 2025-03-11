@@ -178,18 +178,18 @@ def submit_job_result(api_key):
 
 @api_blueprint.route('/api/results', methods=['POST'])
 def legacy_submit_job_result():
-    """Endpoint de compatibilidade para probes antigos enviar resultados"""
-    # Obter o API key do cabeçalho de autorização
+    """Compatibility endpoint for legacy probes to submit results"""
+    # Get API key from authorization header
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         return jsonify({
             'status': 'error',
-            'message': 'API key não fornecida no cabeçalho Authorization'
+            'message': 'API key not provided in Authorization header'
         }), 401
     
     api_key = auth_header.split(' ')[1]
     
-    # Verificar se o probe existe e é ativo
+    # Check if probe exists and is active
     probe = Probe.query.filter_by(api_key=api_key, is_active=True).first()
     
     if not probe:
@@ -198,7 +198,7 @@ def legacy_submit_job_result():
             'message': 'Invalid or inactive API key'
         }), 401
     
-    # Registrar conexão do probe
+    # Register probe connection
     client_ip = request.remote_addr
     probe_log = ProbeLog(
         probe_id=probe.id,
@@ -208,7 +208,7 @@ def legacy_submit_job_result():
     )
     db.session.add(probe_log)
     
-    # Validar formato dos dados
+    # Validate data format
     data = request.json
     if not data or not isinstance(data, dict) or 'job_id' not in data or 'success' not in data:
         return jsonify({
@@ -216,7 +216,7 @@ def legacy_submit_job_result():
             'message': 'Invalid data format'
         }), 400
     
-    # Procurar job correspondente
+    # Find corresponding job
     job = Job.query.filter_by(id=data['job_id'], probe_id=probe.id).first()
     if not job:
         return jsonify({
@@ -224,19 +224,19 @@ def legacy_submit_job_result():
             'message': 'Job not found or not assigned to this probe'
         }), 404
     
-    # Criar registro de resultado
+    # Create result record
     job_result = JobResult(
         job_id=job.id,
         success=data['success'],
-        response_time=data.get('response_time_ms'),  # Campo ajustado para compatibilidade
-        status_code=data.get('packets_received'),   # Campo ajustado para compatibilidade
+        response_time=data.get('response_time_ms'),  # Field adjusted for compatibility
+        status_code=data.get('packets_received'),   # Field adjusted for compatibility
         error_message=data.get('error_message'),
-        output=json.dumps(data)  # Salvar todos os dados para debug
+        output=json.dumps(data)  # Save all data for debugging
     )
     
     db.session.add(job_result)
     
-    # Atualizar timestamp de última execução
+    # Update last run timestamp
     job.last_run = datetime.utcnow()
     db.session.commit()
     
