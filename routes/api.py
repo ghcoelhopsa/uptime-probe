@@ -129,10 +129,12 @@ def submit_job_result(api_key):
         }), 401
     
     # Registrar conexão do probe
+    client_ip = request.remote_addr
     probe_log = ProbeLog(
         probe_id=probe.id,
-        action="submit_results",
-        details="Probe submitted job results"
+        action=f"job_result_submission",
+        ip_address=client_ip,
+        details=f"Probe submitted job results from IP {client_ip}"
     )
     db.session.add(probe_log)
     
@@ -202,9 +204,9 @@ def legacy_submit_job_result():
     client_ip = request.remote_addr
     probe_log = ProbeLog(
         probe_id=probe.id,
-        action="submit_results",
+        action="job_result_submission",
         ip_address=client_ip,
-        details="Probe submitted job results (legacy endpoint)"
+        details=f"Probe submitted job results (legacy endpoint) from IP {client_ip}"
     )
     db.session.add(probe_log)
     
