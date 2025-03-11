@@ -18,6 +18,7 @@ logs/
 
 # Environment variables
 .env
+!.env.example
 
 # Distribution / packaging
 dist/
@@ -31,4 +32,3 @@ build/
 *.swo
 
 # Docker
-*.env.example
