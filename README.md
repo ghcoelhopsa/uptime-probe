@@ -40,15 +40,14 @@ sudo docker compose up -d
 
 ##### Option 1A: Docker Deployment (Recommended)
 
-1. Copy the probe directory to the machine that will run the probe:
+1. Clone the repository on the machine that will run the probe:
 ```bash
-scp -r /path/to/uptime/probe user@probe-machine:/destination/path/
-# or use any other file transfer method
+git clone https://github.com/ghcoelhopsa/uptime-probe.git
+cd uptime-probe/probe
 ```
 
-2. Navigate to the probe directory and edit the docker-compose.yml file:
+2. Edit the docker-compose.yml file to configure the probe:
 ```bash
-cd /path/to/probe
 nano docker-compose.yml
 ```
 
@@ -112,18 +111,20 @@ flask run --host=0.0.0.0
 
 **Important**: The probe requires the Uptime Monitor server to be deployed and accessible first. The probe connects to the server for job instructions and reports results back to the server. For proper visualization, the jobs you configure in the Uptime Monitor should include valid Uptime Kuma push URLs.
 
-1. Copy the probe directory to the machine that will run the probe
-2. Create a virtual environment and install dependencies:
-
+1. Clone the repository on the machine that will run the probe:
 ```bash
-cd probe
+git clone https://github.com/ghcoelhopsa/uptime-probe.git
+cd uptime-probe/probe
+```
+
+2. Create a virtual environment and install dependencies:
+```bash
 python -m venv venv
 source venv/bin/activate  # On Linux/Mac
 pip install -r requirements.txt
 ```
 
 3. Create a `.env` file with the required configuration:
-
 ```bash
 echo "API_KEY=your_probe_api_key_here" > .env
 echo "SERVER_URL=http://your_server_ip:5000" >> .env
@@ -132,7 +133,6 @@ echo "HEARTBEAT_INTERVAL=60" >> .env
 ```
 
 4. Run the probe:
-
 ```bash
 python probe.py
 ```
